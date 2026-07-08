@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tablero IMSS Bienestar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Archivo+Black&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <div class="bg-shape bg-shape-a"></div>
+  <div class="bg-shape bg-shape-b"></div>
+  <main class="layout">
+    <header class="hero">
+      <p class="eyebrow">Panel de Seguimiento</p>
+      <h1>Tablero de Avance</h1>
+      <p id="subtitle">Visualizacion general y detalle por tabla.</p>
+      <p id="updated-at" class="updated-at">Actualizado: --</p>
+    </header>
+
+    <section class="value-boxes" aria-label="Resumen de unidades">
+      <article class="value-box">
+        <p class="value-box-label">Unidades con al menos un registro</p>
+        <p id="value-unidades-registro" class="value-box-number">0</p>
+        <p id="value-unidades-registro-detail" class="value-box-detail">de 0 unidades totales</p>
+      </article>
+      <article class="value-box">
+        <p class="value-box-label">Estados que han llenado al menos una unidad</p>
+        <p id="value-estados-registro" class="value-box-number">0</p>
+        <p id="value-estados-registro-detail" class="value-box-detail">de 0 estados totales</p>
+      </article>
+      <article class="value-box">
+        <p class="value-box-label">Unidades que ya llenaron</p>
+        <p id="value-unidades-completas" class="value-box-number">0</p>
+        <p id="value-unidades-completas-detail" class="value-box-detail">0% de las unidades con registro</p>
+      </article>
+    </section>
+
+    <nav id="tabs" class="tabs" aria-label="Pestanas de contenido"></nav>
+
+    <section id="panel-graficas" class="panel active"></section>
+    <section id="tables-root"></section>
+  </main>
+
+  <footer class="footer">
+    <img src="https://imssbienestar.gob.mx/assets/img/imb_b.svg" alt="Logo IMSS Bienestar" class="logo" />
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+:root {
+  --c-1: #002F2A;
+  --c-2: #611232;
+  --c-3: #A57F2C;
+  --bg: #f4f2ec;
+  --ink: #10211e;
+  --card: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Manrope, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(165,127,44,0.25) 0%, rgba(165,127,44,0) 35%),
+    radial-gradient(circle at 90% 20%, rgba(97,18,50,0.18) 0%, rgba(97,18,50,0) 40%),
+    var(--bg);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.bg-shape {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: -1;
+}
+
+.bg-shape-a {
+  width: 260px;
+  height: 260px;
+  background: rgba(0,47,42,0.25);
+  top: -90px;
+  left: -70px;
+}
+
+.bg-shape-b {
+  width: 280px;
+  height: 280px;
+  background: rgba(97,18,50,0.2);
+  right: -90px;
+  bottom: -70px;
+}
+
+.layout {
+  width: min(1320px, 96vw);
+  margin: 1rem auto 4rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-family: "Archivo Black", sans-serif;
+  letter-spacing: 0.03em;
+  color: var(--c-1);
+}
+
+.eyebrow {
+  margin: 0 0 .5rem;
+  color: var(--c-2);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: .8rem;
+}
+
+.hero p { margin: .5rem 0 0; }
+
+.updated-at {
+  margin-top: .45rem;
+  font-size: .85rem;
+  color: rgba(16, 33, 30, .75);
+  font-weight: 600;
+}
+
+.value-boxes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.75rem 0 1.25rem;
+}
+
+@media (max-width: 980px) {
+  .value-boxes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.value-box {
+  background: linear-gradient(135deg, rgba(0,47,42,0.98), rgba(97,18,50,0.92));
+  color: #fff;
+  border-radius: 18px;
+  padding: 1.2rem 1.3rem;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .12);
+}
+
+.value-box-label {
+  margin: 0;
+  font-size: .88rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.78);
+}
+
+.value-box-number {
+  margin: .35rem 0 .2rem;
+  font-family: "Archivo Black", sans-serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+}
+
+.value-box-detail {
+  margin: 0;
+  font-size: .95rem;
+  color: rgba(255,255,255,.86);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 1.5rem 0;
+}
+
+.tab-btn {
+  border: 0;
+  padding: .65rem 1rem;
+  border-radius: 999px;
+  background: #e4ddd0;
+  color: var(--c-1);
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform .2s ease, background .2s ease;
+}
+
+.tab-btn:hover { transform: translateY(-1px); }
+.tab-btn.active {
+  background: var(--c-1);
+  color: #fff;
+}
+
+.panel {
+  display: none;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  animation: rise .35s ease;
+}
+
+.panel.active { display: block; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+  align-items: stretch;
+}
+
+.chart-card {
+  border: 2px solid rgba(0,47,42,.1);
+  border-radius: 14px;
+  padding: .4rem;
+  min-height: 180px;
+  background: #fff;
+}
+
+.chart {
+  width: 100%;
+  min-height: 180px;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card {
+    min-height: 180px;
+  }
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: .65rem;
+}
+
+.btn-excel {
+  text-decoration: none;
+  background: var(--c-3);
+  color: #112;
+  font-weight: 800;
+  padding: .5rem .8rem;
+  border-radius: 10px;
+}
+
+.table-wrap {
+  overflow: auto;
+  max-height: 68vh;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .92rem;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--c-2);
+  color: #fff;
+  padding: .7rem;
+  text-align: left;
+}
+
+tbody td {
+  padding: .6rem;
+  border-bottom: 1px solid #eee;
+}
+
+tbody tr:nth-child(even) { background: #faf8f3; }
+
+.footer {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 20;
+}
+
+.logo {
+  width: min(220px, 45vw);
+  filter: brightness(0) saturate(100%) invert(13%) sepia(27%) saturate(1148%) hue-rotate(124deg) brightness(95%) contrast(102%) drop-shadow(0 6px 18px rgba(0,0,0,.12));
+}
+
+@media (max-width: 700px) {
+  .layout {
+    margin-top: 3.4rem;
+  }
+
+  .value-boxes {
+    grid-template-columns: 1fr;
+  }
+
+  .logo {
+    width: min(160px, 50vw);
+  }
+}
+
+@keyframes rise {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
