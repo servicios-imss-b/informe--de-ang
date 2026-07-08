@@ -233,6 +233,17 @@ function renderTablePanel(name, tableData) {
 
   const toolbar = document.createElement('div');
   toolbar.className = 'table-toolbar';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'table-search';
+  searchInput.placeholder = 'Buscar en la tabla...';
+  searchInput.setAttribute('aria-label', `Buscar en ${name}`);
+  toolbar.appendChild(searchInput);
+
+  const tableInfo = document.createElement('p');
+  tableInfo.className = 'table-info';
+  toolbar.appendChild(tableInfo);
+
   if (tableData.excel) {
     const link = document.createElement('a');
     link.className = 'btn-excel';
@@ -249,25 +260,142 @@ function renderTablePanel(name, tableData) {
   const table = document.createElement('table');
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
+  const columns = tableData.columns || [];
+  const allRows = Array.isArray(tableData.rows) ? tableData.rows.slice() : [];
+  let activeQuery = '';
+  let activeSortColumn = null;
+  let activeSortDirection = 'asc';
+  const sortIndicators = new Map();
+
+  function toComparable(value) {
+    if (value == null) return '';
+    return String(value).trim();
+  }
+
+  function compareValues(aValue, bValue, direction) {
+    const dir = direction === 'desc' ? -1 : 1;
+    const aText = toComparable(aValue);
+    const bText = toComparable(bValue);
+
+    const aNumber = Number(aText);
+    const bNumber = Number(bText);
+    const aIsNumber = aText !== '' && Number.isFinite(aNumber);
+    const bIsNumber = bText !== '' && Number.isFinite(bNumber);
+    if (aIsNumber && bIsNumber) {
+      return (aNumber - bNumber) * dir;
+    }
+
+    return aText.localeCompare(bText, 'es', { numeric: true, sensitivity: 'base' }) * dir;
+  }
+
+  function updateSortIndicators() {
+    sortIndicators.forEach((indicator, col) => {
+      if (col !== activeSortColumn) {
+        indicator.textContent = '[=]';
+        return;
+      }
+      indicator.textContent = activeSortDirection === 'asc' ? '[^]' : '[v]';
+    });
+  }
+
+  function getFilteredRows() {
+    const query = activeQuery.trim().toLowerCase();
+    if (!query) return allRows.slice();
+
+    return allRows.filter(row => {
+      return columns.some(col => {
+        const value = row[col];
+        return String(value == null ? '' : value).toLowerCase().includes(query);
+      });
+    });
+  }
+
+  function getVisibleRows() {
+    const filteredRows = getFilteredRows();
+    if (!activeSortColumn) return filteredRows;
+
+    return filteredRows.slice().sort((a, b) => {
+      return compareValues(a[activeSortColumn], b[activeSortColumn], activeSortDirection);
+    });
+  }
+
   (tableData.columns || []).forEach(col => {
     const th = document.createElement('th');
-    th.textContent = col;
+    th.className = 'sortable';
+    th.tabIndex = 0;
+
+    const label = document.createElement('span');
+    label.textContent = col;
+    th.appendChild(label);
+
+    const indicator = document.createElement('span');
+    indicator.className = 'sort-indicator';
+    indicator.textContent = '[=]';
+    sortIndicators.set(col, indicator);
+    th.appendChild(indicator);
+
+    const handleSortToggle = () => {
+      if (activeSortColumn === col) {
+        activeSortDirection = activeSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        activeSortColumn = col;
+        activeSortDirection = 'asc';
+      }
+      updateSortIndicators();
+      renderRows();
+    };
+
+    th.addEventListener('click', handleSortToggle);
+    th.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        handleSortToggle();
+      }
+    });
+
     trh.appendChild(th);
   });
   thead.appendChild(trh);
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');
-  (tableData.rows || []).forEach(row => {
-    const tr = document.createElement('tr');
-    (tableData.columns || []).forEach(col => {
-      const td = document.createElement('td');
-      const value = row[col];
-      td.textContent = value == null ? '' : String(value);
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
+
+  function renderRows() {
+    tbody.innerHTML = '';
+    const visibleRows = getVisibleRows();
+
+    if (!visibleRows.length) {
+      const emptyRow = document.createElement('tr');
+      const emptyCell = document.createElement('td');
+      emptyCell.colSpan = columns.length || 1;
+      emptyCell.className = 'table-empty';
+      emptyCell.textContent = 'No hay resultados para la busqueda actual.';
+      emptyRow.appendChild(emptyCell);
+      tbody.appendChild(emptyRow);
+    } else {
+      visibleRows.forEach(row => {
+        const tr = document.createElement('tr');
+        columns.forEach(col => {
+          const td = document.createElement('td');
+          const value = row[col];
+          td.textContent = value == null ? '' : String(value);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    tableInfo.textContent = `${visibleRows.length} de ${allRows.length} registro(s)`;
+  }
+
+  searchInput.addEventListener('input', event => {
+    activeQuery = event.target.value || '';
+    renderRows();
   });
+
+  updateSortIndicators();
+  renderRows();
+
   table.appendChild(tbody);
 
   wrap.appendChild(table);

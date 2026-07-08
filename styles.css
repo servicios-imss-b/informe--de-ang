@@ -185,8 +185,34 @@ body {
 
 .table-toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
   margin-bottom: .65rem;
+}
+
+.table-search {
+  min-width: min(360px, 100%);
+  flex: 1 1 260px;
+  border: 1px solid rgba(0, 47, 42, .25);
+  border-radius: 10px;
+  padding: .55rem .7rem;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+
+.table-search:focus {
+  outline: 2px solid rgba(165, 127, 44, .45);
+  border-color: rgba(165, 127, 44, .7);
+}
+
+.table-info {
+  margin: 0;
+  color: rgba(16, 33, 30, .75);
+  font-size: .85rem;
+  font-weight: 700;
 }
 
 .btn-excel {
@@ -218,9 +244,33 @@ thead th {
   text-align: left;
 }
 
+thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+thead th.sortable:focus {
+  outline: 2px solid rgba(255, 255, 255, .7);
+  outline-offset: -2px;
+}
+
+.sort-indicator {
+  margin-left: .45rem;
+  font-size: .75rem;
+  opacity: .9;
+}
+
 tbody td {
   padding: .6rem;
   border-bottom: 1px solid #eee;
+}
+
+.table-empty {
+  text-align: center;
+  font-weight: 700;
+  color: rgba(16, 33, 30, .7);
+  padding: 1rem;
 }
 
 tbody tr:nth-child(even) { background: #faf8f3; }
