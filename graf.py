@@ -37,7 +37,7 @@ total_unidades = base["clues_imb"].nunique()
 respondieron = base_an["clues_imb"].nunique()
 
 sin_responder = total_unidades - respondieron
-
+base_an = base_an.drop_duplicates()
 avance_general = round(respondieron / total_unidades * 100, 1)
 # tablas
 # TABLA 1 - AVANCE POR ENTIDAD
