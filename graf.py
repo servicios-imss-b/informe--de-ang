@@ -110,7 +110,7 @@ respondidas = (
 
 tabla_unidades = consultorios.merge(
     respondidas,
-    on=["clues_imb","entidad"]
+    on=["clues_imb","entidad", "nombre_de_la_unidad"]
 )
 
 tabla_unidades["esperadas"] = (
