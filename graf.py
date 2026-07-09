@@ -334,11 +334,14 @@ if not html_origen.exists() and index_destino.exists():
     html_origen.write_text(index_destino.read_text(encoding="utf-8"), encoding="utf-8")
     print(f"Se creo plantilla HTML: {html_origen}")
 
-if html_origen.exists():
+# Evitar que cambios manuales en index.html se pierdan al regenerar datos.
+if not index_destino.exists() and html_origen.exists():
     index_destino.write_text(html_origen.read_text(encoding="utf-8"), encoding="utf-8")
-    print(f"Index actualizado desde: {html_origen}")
+    print(f"Index creado desde: {html_origen}")
+elif not html_origen.exists():
+    print(f"No se encontro {html_origen.name}; index.html no se pudo crear.")
 else:
-    print(f"No se encontro {html_origen.name}; index.html no se pudo actualizar.")
+    print("Index conservado sin sobrescribir.")
 
 print(f"Datos exportados en: {salida_data}")
 print("Ejecuta esta celda tras modificar graficas o HTML para refrescar el tablero.")
