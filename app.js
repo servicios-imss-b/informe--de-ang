@@ -108,24 +108,43 @@ function calculateSummaryMetrics() {
   const estadosConRegistro = avanceRows.reduce((sum, row) => {
     return Number(row.unidades_respondieron || 0) > 0 ? sum + 1 : sum;
   }, 0);
-  const porcentajeEntidadesConRegistro = totalEstados
-    ? (estadosConRegistro / totalEstados) * 100
-    : 0;
   const totalUnidades = avanceRows.reduce((sum, row) => sum + Number(row.total_unidades || 0), 0);
   const unidadesConRegistro = avanceRows.reduce((sum, row) => sum + Number(row.unidades_respondieron || 0), 0);
   const unidadesCompletasSet = new Set();
+  const unidadesCompletasPorEntidad = new Map();
 
   unidadesRows.forEach(row => {
     if (Number(row.porcentaje || 0) >= 100 && row.clues != null) {
-      unidadesCompletasSet.add(String(row.clues));
+      const clues = String(row.clues);
+      unidadesCompletasSet.add(clues);
+
+      const entidad = String(row.entidad || '');
+      if (entidad) {
+        if (!unidadesCompletasPorEntidad.has(entidad)) {
+          unidadesCompletasPorEntidad.set(entidad, new Set());
+        }
+        unidadesCompletasPorEntidad.get(entidad).add(clues);
+      }
     }
   });
 
   const unidadesCompletas = unidadesCompletasSet.size;
+  const entidadesCompletas = avanceRows.reduce((sum, row) => {
+    const entidad = String(row.entidad || '');
+    const totalUnidadesEntidad = Number(row.total_unidades || 0);
+    if (!entidad || totalUnidadesEntidad <= 0) return sum;
+
+    const completasEntidad = unidadesCompletasPorEntidad.get(entidad)?.size || 0;
+    return completasEntidad >= totalUnidadesEntidad ? sum + 1 : sum;
+  }, 0);
+  const porcentajeEntidadesConRegistro = totalEstados
+    ? (entidadesCompletas / totalEstados) * 100
+    : 0;
 
   return {
     totalEstados,
     estadosConRegistro,
+    entidadesCompletas,
     porcentajeEntidadesConRegistro,
     totalUnidades,
     unidadesConRegistro,
@@ -158,7 +177,7 @@ function renderSummaryMetrics() {
     porcentajeEntidadesEl.textContent = formatPercent2Digits(metrics.porcentajeEntidadesConRegistro);
   }
   if (porcentajeEntidadesDetailEl) {
-    porcentajeEntidadesDetailEl.textContent = `${formatNumber(metrics.estadosConRegistro)} de ${formatNumber(metrics.totalEstados)} estados con registro`;
+    porcentajeEntidadesDetailEl.textContent = `${formatNumber(metrics.entidadesCompletas)} de ${formatNumber(metrics.totalEstados)} entidades al 100%`;
   }
   if (unidadesCompletasEl) {
     unidadesCompletasEl.textContent = formatPercent2Digits(porcentajeCompletas);
