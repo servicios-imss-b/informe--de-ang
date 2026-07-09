@@ -8,6 +8,8 @@ const unidadesRegistroEl = document.getElementById('value-unidades-registro');
 const unidadesRegistroDetailEl = document.getElementById('value-unidades-registro-detail');
 const estadosRegistroEl = document.getElementById('value-estados-registro');
 const estadosRegistroDetailEl = document.getElementById('value-estados-registro-detail');
+const porcentajeEntidadesEl = document.getElementById('value-porcentaje-entidades');
+const porcentajeEntidadesDetailEl = document.getElementById('value-porcentaje-entidades-detail');
 const unidadesCompletasEl = document.getElementById('value-unidades-completas');
 const unidadesCompletasDetailEl = document.getElementById('value-unidades-completas-detail');
 
@@ -92,23 +94,39 @@ function formatNumber(value) {
   return new Intl.NumberFormat('es-MX').format(value || 0);
 }
 
+function formatPercent2Digits(value) {
+  const rounded = Math.round(Number(value) || 0);
+  if (rounded >= 100) return `${rounded}%`;
+  return `${String(rounded).padStart(2, '0')}%`;
+}
+
 function calculateSummaryMetrics() {
   const avanceRows = data.tables?.tabla_avance?.rows || [];
-  const entidadesRows = data.tables?.tabla_entidades?.rows || [];
+  const unidadesRows = data.tables?.tabla_unidades?.rows || [];
 
   const totalEstados = avanceRows.length;
   const estadosConRegistro = avanceRows.reduce((sum, row) => {
     return Number(row.unidades_respondieron || 0) > 0 ? sum + 1 : sum;
   }, 0);
+  const porcentajeEntidadesConRegistro = totalEstados
+    ? (estadosConRegistro / totalEstados) * 100
+    : 0;
   const totalUnidades = avanceRows.reduce((sum, row) => sum + Number(row.total_unidades || 0), 0);
   const unidadesConRegistro = avanceRows.reduce((sum, row) => sum + Number(row.unidades_respondieron || 0), 0);
-  const unidadesCompletas = entidadesRows.reduce((sum, row) => {
-    return Number(row.porcentaje || 0) >= 100 ? sum + Number(row.unidades || 0) : sum;
-  }, 0);
+  const unidadesCompletasSet = new Set();
+
+  unidadesRows.forEach(row => {
+    if (Number(row.porcentaje || 0) >= 100 && row.clues != null) {
+      unidadesCompletasSet.add(String(row.clues));
+    }
+  });
+
+  const unidadesCompletas = unidadesCompletasSet.size;
 
   return {
     totalEstados,
     estadosConRegistro,
+    porcentajeEntidadesConRegistro,
     totalUnidades,
     unidadesConRegistro,
     unidadesCompletas,
@@ -117,15 +135,18 @@ function calculateSummaryMetrics() {
 
 function renderSummaryMetrics() {
   const metrics = calculateSummaryMetrics();
-  const porcentajeCompletas = metrics.unidadesConRegistro
-    ? (metrics.unidadesCompletas / metrics.unidadesConRegistro) * 100
+  const porcentajeConRegistroSobreTotal = metrics.totalUnidades
+    ? (metrics.unidadesConRegistro / metrics.totalUnidades) * 100
+    : 0;
+  const porcentajeCompletas = metrics.totalUnidades
+    ? (metrics.unidadesCompletas / metrics.totalUnidades) * 100
     : 0;
 
   if (unidadesRegistroEl) {
     unidadesRegistroEl.textContent = formatNumber(metrics.unidadesConRegistro);
   }
   if (unidadesRegistroDetailEl) {
-    unidadesRegistroDetailEl.textContent = `de ${formatNumber(metrics.totalUnidades)} unidades totales`;
+    unidadesRegistroDetailEl.textContent = `de ${formatNumber(metrics.totalUnidades)} unidades totales (${formatPercent2Digits(porcentajeConRegistroSobreTotal)})`;
   }
   if (estadosRegistroEl) {
     estadosRegistroEl.textContent = formatNumber(metrics.estadosConRegistro);
@@ -133,11 +154,17 @@ function renderSummaryMetrics() {
   if (estadosRegistroDetailEl) {
     estadosRegistroDetailEl.textContent = `de ${formatNumber(metrics.totalEstados)} estados totales`;
   }
+  if (porcentajeEntidadesEl) {
+    porcentajeEntidadesEl.textContent = formatPercent2Digits(metrics.porcentajeEntidadesConRegistro);
+  }
+  if (porcentajeEntidadesDetailEl) {
+    porcentajeEntidadesDetailEl.textContent = `${formatNumber(metrics.estadosConRegistro)} de ${formatNumber(metrics.totalEstados)} estados con registro`;
+  }
   if (unidadesCompletasEl) {
-    unidadesCompletasEl.textContent = formatNumber(metrics.unidadesCompletas);
+    unidadesCompletasEl.textContent = formatPercent2Digits(porcentajeCompletas);
   }
   if (unidadesCompletasDetailEl) {
-    unidadesCompletasDetailEl.textContent = `${porcentajeCompletas.toFixed(1)}% de las unidades con registro`;
+    unidadesCompletasDetailEl.textContent = `${formatNumber(metrics.unidadesCompletas)} de ${formatNumber(metrics.totalUnidades)} unidades totales`;
   }
 }
 
