@@ -15,11 +15,11 @@ base_an = pd.read_csv(url)
 col = ["clues_imb"]
 base = base[col]
 base = base.merge(
-    clues[["clues_imb", "entidad"]],
+    clues[["clues_imb", "entidad",'nombre_de_la_unidad']],
     on="clues_imb",
     how="left"
 )
-colum =['clues_imb', 'entidad','consultorio','pregunta']
+colum =['clues_imb', 'entidad','consultorio','pregunta','nombre_de_la_unidad']
 base_an = base_an[colum]    
 b = pd.read_excel(fr"C:\Users\{usuario}\Downloads\nuevo-f\formulario-ang\bases\UM_IMB_SUS.xlsx",sheet_name="Hoja2")
 b = b.drop(index=[0, 2, 5,3,1])
@@ -90,7 +90,7 @@ n_preguntas = len(b)
 # Número de consultorios por unidad
 consultorios = (
     base_an
-    .groupby(["clues_imb","entidad"],as_index=False)
+    .groupby(["clues_imb","entidad",'nombre_de_la_unidad'],as_index=False)
     ["consultorio"]
     .max()
 )
@@ -103,7 +103,7 @@ consultorios.rename(
 # Preguntas respondidas
 respondidas = (
     base_an
-    .groupby(["clues_imb","entidad"])
+    .groupby(["clues_imb","entidad",'nombre_de_la_unidad'])
     .size()
     .reset_index(name="respondidas")
 )
@@ -320,6 +320,11 @@ payload = {
     },
     "figures": figures,
 }
+
+# Mantener los Excel sincronizados con los datos mostrados en el tablero.
+tabla_avance.to_excel(base_dir / "tabla_avance.xlsx", index=False)
+tabla_entidades.to_excel(base_dir / "tabla_entidades.xlsx", index=False)
+tabla_unidades.to_excel(base_dir / "tabla_unidades.xlsx", index=False)
 
 contenido_js = "window.DASHBOARD_DATA = " + json.dumps(payload, ensure_ascii=False, cls=PlotlyJSONEncoder) + ";\n"
 salida_data.write_text(contenido_js, encoding="utf-8")
