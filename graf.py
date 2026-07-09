@@ -28,7 +28,7 @@ b = b.rename(columns={
    'CLUES' : 'preguntas',
 })
 base_an = base_an[
-    ~base_an["pregunta"].str.contains("internet|turno_consultorio", case=False, na=False)
+    ~base_an["pregunta"].str.contains("internet|turno_consultorio|consultorios_habilitados", case=False, na=False)
 ]
 base_conteo =base["clues_imb"].unique()
 base_conteo
