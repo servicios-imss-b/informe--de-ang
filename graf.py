@@ -295,7 +295,6 @@ fig.update_layout(
     height=700
 )
 
-fig.show(renderer="browser")
 import plotly.graph_objects as go
 
 # Ordenar de menor a mayor para efecto cascada
