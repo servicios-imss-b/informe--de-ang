@@ -4,13 +4,29 @@ usuario = os.getlogin()
 base = pd.read_excel(fr"C:\Users\{usuario}\Downloads\nuevo-f\formulario-ang\bases\UnidadesIMB_CS!_v2.xlsx",sheet_name="Sheet 1")
 clues = pd.read_parquet(fr"C:\Users\{usuario}\IMSS-BIENESTAR\División de Procesamiento de información - Repositorio de Datos\CLUES\clues.parquet")
 import pandas as pd
+import requests
+import pandas as pd
+from io import StringIO
 
 sheet_id = "1maRNGDuU9rEFWZLgMdhJS1waAnJxl6ENntm-nyD0tq8"
 gid = "1765182479"
 
 url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
 
-base_an = pd.read_csv(url)
+# Descargar el archivo
+response = requests.get(url, timeout=30)
+response.raise_for_status()
+
+# Guardar el CSV
+with open("base_an.csv", "wb") as f:
+    f.write(response.content)
+
+print("CSV descargado correctamente: base_an.csv")
+
+# Leer el archivo local
+base_an = pd.read_csv("base_an.csv")
+
+print(base_an.head())
 
 col = ["clues_imb"]
 base = base[col]
