@@ -265,6 +265,12 @@ function enrichFigureWithMissingClues(item, figure, cluesLookup) {
 
     firstTrace.customdata = cluesByBar.map(value => [value]);
     firstTrace.hovertemplate = '<b>%{x}</b><br>CLUES faltantes:<br>%{customdata[0]}<extra></extra>';
+    updated.layout = {
+      ...(updated.layout || {}),
+      hovermode: 'x unified',
+      hoverdistance: 80,
+      clickmode: 'none',
+    };
   }
 
   if (item.id === 'fig_cascada') {
@@ -275,6 +281,12 @@ function enrichFigureWithMissingClues(item, figure, cluesLookup) {
 
     firstTrace.customdata = cluesByBar.map(value => [value]);
     firstTrace.hovertemplate = '<b>%{y}</b><br>CLUES faltantes:<br>%{customdata[0]}<extra></extra>';
+    updated.layout = {
+      ...(updated.layout || {}),
+      hovermode: 'y unified',
+      hoverdistance: 80,
+      clickmode: 'none',
+    };
   }
 
   return updated;
