@@ -39,6 +39,47 @@ respondieron = base_an["clues_imb"].nunique()
 sin_responder = total_unidades - respondieron
 base_an = base_an.drop_duplicates()
 avance_general = round(respondieron / total_unidades * 100, 1)
+
+# TABLA NUEVA - FALTANTES POR ESTADOS
+esperadas_estado = (
+    base[["entidad", "clues_imb", "nombre_de_la_unidad"]]
+    .dropna(subset=["entidad", "clues_imb"])
+    .drop_duplicates()
+)
+
+respondidas_estado = (
+    base_an[["clues_imb"]]
+    .dropna(subset=["clues_imb"])
+    .drop_duplicates()
+    .merge(
+        base[["clues_imb", "entidad"]].drop_duplicates(),
+        on="clues_imb",
+        how="left"
+    )
+    .dropna(subset=["entidad"])
+    .drop_duplicates()
+)
+
+faltantes_por_estados = (
+    esperadas_estado
+    .merge(
+        respondidas_estado[["entidad", "clues_imb"]],
+        on=["entidad", "clues_imb"],
+        how="left",
+        indicator=True
+    )
+    .query('_merge == "left_only"')
+    .drop(columns=["_merge"])
+    .sort_values(["entidad", "clues_imb"])
+    .reset_index(drop=True)
+)
+
+tabla_faltantes_por_estados = (
+    faltantes_por_estados
+    .groupby("entidad", as_index=False)
+    .agg(clues_faltantes=("clues_imb", "nunique"))
+    .sort_values("clues_faltantes", ascending=False)
+)
 # tablas
 # TABLA 1 - AVANCE POR ENTIDAD
 
@@ -192,6 +233,17 @@ import plotly.express as px
 
 tabla = tabla_avance.sort_values("porcentaje", ascending=False).copy()
 
+# Lista de CLUES faltantes por entidad para hover.
+faltantes_hover = (
+    faltantes_por_estados
+    .groupby("entidad")["clues_imb"]
+    .apply(lambda s: "<br>".join(sorted(s.astype(str).unique())))
+    .reset_index(name="clues_faltantes_hover")
+)
+
+tabla = tabla.merge(faltantes_hover, on="entidad", how="left")
+tabla["clues_faltantes_hover"] = tabla["clues_faltantes_hover"].fillna("Sin CLUES faltantes")
+
 # Semáforo de colores
 tabla["color"] = tabla["porcentaje"].apply(
     lambda p:
@@ -206,14 +258,15 @@ fig = px.bar(
     x="entidad",
     y="porcentaje",
     text="porcentaje",
-    title="Avance por entidad sobre unidades"
+    title="Avance por entidad sobre unidades",
+    custom_data=["clues_faltantes_hover"]
 )
 
 fig.update_traces(
     marker_color=tabla["color"],
     texttemplate="%{text:.1f}%",
     textposition="outside",
-    hovertemplate="<b>%{x}</b><br>Avance: %{y:.1f}%<extra></extra>"
+    hovertemplate="<b>%{x}</b><br>CLUES faltantes:<br>%{customdata[0]}<extra></extra>"
 )
 
 fig.update_yaxes(showticklabels=False)
@@ -226,7 +279,7 @@ fig.update_layout(
     height=700
 )
 
-fig.show()
+fig.show(renderer="browser")
 import plotly.graph_objects as go
 
 # Ordenar de menor a mayor para efecto cascada
@@ -278,7 +331,7 @@ fig_cascada.update_layout(
     margin=dict(l=20, r=60, t=60, b=40)
 )
 
-fig_cascada.show()
+fig_cascada.show(renderer="browser")
 from pathlib import Path
 import json
 from datetime import datetime
@@ -317,6 +370,16 @@ payload = {
             "rows": tabla_unidades.to_dict(orient="records"),
             "excel": "tabla_unidades.xlsx",
         },
+        "faltantes_por_estados": {
+            "columns": list(faltantes_por_estados.columns),
+            "rows": faltantes_por_estados.to_dict(orient="records"),
+            "excel": "faltantes_por_estados.xlsx",
+        },
+        "tabla_faltantes_por_estados": {
+            "columns": list(tabla_faltantes_por_estados.columns),
+            "rows": tabla_faltantes_por_estados.to_dict(orient="records"),
+            "excel": "tabla_faltantes_por_estados.xlsx",
+        },
     },
     "figures": figures,
 }
@@ -325,6 +388,8 @@ payload = {
 tabla_avance.to_excel(base_dir / "tabla_avance.xlsx", index=False)
 tabla_entidades.to_excel(base_dir / "tabla_entidades.xlsx", index=False)
 tabla_unidades.to_excel(base_dir / "tabla_unidades.xlsx", index=False)
+faltantes_por_estados.to_excel(base_dir / "faltantes_por_estados.xlsx", index=False)
+tabla_faltantes_por_estados.to_excel(base_dir / "tabla_faltantes_por_estados.xlsx", index=False)
 
 contenido_js = "window.DASHBOARD_DATA = " + json.dumps(payload, ensure_ascii=False, cls=PlotlyJSONEncoder) + ";\n"
 salida_data.write_text(contenido_js, encoding="utf-8")

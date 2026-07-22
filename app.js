@@ -225,6 +225,61 @@ function getRenderableFigures() {
   });
 }
 
+function buildCluesLookupByEntidad() {
+  const rows = data.tables?.faltantes_por_estados?.rows || [];
+  const map = new Map();
+
+  rows.forEach(row => {
+    const entidad = String(row.entidad || '').trim();
+    const clues = String(row.clues_imb || '').trim();
+    if (!entidad || !clues) return;
+
+    if (!map.has(entidad)) map.set(entidad, new Set());
+    map.get(entidad).add(clues);
+  });
+
+  const normalized = new Map();
+  map.forEach((cluesSet, entidad) => {
+    const cluesList = Array.from(cluesSet).sort((a, b) =>
+      a.localeCompare(b, 'es', { numeric: true, sensitivity: 'base' })
+    );
+    normalized.set(entidad, cluesList.join('<br>'));
+  });
+
+  return normalized;
+}
+
+function enrichFigureWithMissingClues(item, figure, cluesLookup) {
+  if (!item?.id || !figure?.data?.length) return figure;
+
+  // Deep clone to avoid mutating source payload.
+  const updated = JSON.parse(JSON.stringify(figure));
+  const firstTrace = updated.data[0];
+  if (!firstTrace) return updated;
+
+  if (item.id === 'fig_avance') {
+    const entidades = Array.isArray(firstTrace.x) ? firstTrace.x : [];
+    const cluesByBar = entidades.map(entidad => {
+      return cluesLookup.get(String(entidad || '').trim()) || 'Sin CLUES faltantes';
+    });
+
+    firstTrace.customdata = cluesByBar.map(value => [value]);
+    firstTrace.hovertemplate = '<b>%{x}</b><br>CLUES faltantes:<br>%{customdata[0]}<extra></extra>';
+  }
+
+  if (item.id === 'fig_cascada') {
+    const entidades = Array.isArray(firstTrace.y) ? firstTrace.y : [];
+    const cluesByBar = entidades.map(entidad => {
+      return cluesLookup.get(String(entidad || '').trim()) || 'Sin CLUES faltantes';
+    });
+
+    firstTrace.customdata = cluesByBar.map(value => [value]);
+    firstTrace.hovertemplate = '<b>%{y}</b><br>CLUES faltantes:<br>%{customdata[0]}<extra></extra>';
+  }
+
+  return updated;
+}
+
 function renderGraphs() {
   graphPanel.className = 'panel active';
   const wrap = document.createElement('div');
@@ -232,6 +287,7 @@ function renderGraphs() {
   graphPanel.appendChild(wrap);
 
   const figures = getRenderableFigures();
+  const cluesLookup = buildCluesLookupByEntidad();
 
   if (subtitle) {
     const nTables = Object.keys(data.tables || {}).length;
@@ -248,7 +304,8 @@ function renderGraphs() {
     card.appendChild(el);
     wrap.appendChild(card);
 
-    const figure = item.figure || {};
+    const baseFigure = item.figure || {};
+    const figure = enrichFigureWithMissingClues(item, baseFigure, cluesLookup);
     const finalLayout = {
       ...(figure.layout || {}),
       autosize: true,
