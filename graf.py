@@ -346,7 +346,6 @@ fig_cascada.update_layout(
     margin=dict(l=20, r=60, t=60, b=40)
 )
 
-fig_cascada.show(renderer="browser")
 from pathlib import Path
 import json
 from datetime import datetime
