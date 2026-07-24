@@ -28,6 +28,21 @@ base_an = pd.read_csv("base_an.csv")
 
 print(base_an.head())
 
+# Base de consultorios habilitados por unidad.
+consultorios_habilitados_por_unidad = (
+    base_an[["clues_imb", "entidad", "nombre_de_la_unidad", "consultorios_habilitados"]]
+    .dropna(subset=["clues_imb"])
+    .copy()
+)
+consultorios_habilitados_por_unidad["consultorios_habilitados"] = pd.to_numeric(
+    consultorios_habilitados_por_unidad["consultorios_habilitados"], errors="coerce"
+)
+consultorios_habilitados_por_unidad = (
+    consultorios_habilitados_por_unidad
+    .groupby(["clues_imb", "entidad", "nombre_de_la_unidad"], as_index=False)
+    .agg(consultorios_habilitados=("consultorios_habilitados", "max"))
+)
+
 col = ["clues_imb"]
 base = base[col]
 base = base.merge(
@@ -35,7 +50,7 @@ base = base.merge(
     on="clues_imb",
     how="left"
 )
-colum =['clues_imb', 'entidad','consultorio','pregunta','nombre_de_la_unidad']
+colum =['clues_imb', 'entidad', 'consultorios_habilitados', 'consultorio', 'pregunta', 'nombre_de_la_unidad']
 base_an = base_an[colum]    
 b = pd.read_excel(fr"C:\Users\{usuario}\Downloads\nuevo-f\formulario-ang\bases\UM_IMB_SUS.xlsx",sheet_name="Hoja2")
 b = b.drop(index=[0, 2, 5,3,1])
@@ -73,6 +88,22 @@ respondidas_estado = (
         how="left"
     )
     .dropna(subset=["entidad"])
+    .drop_duplicates()
+)
+
+clues_sin_consultorios_estado = (
+    consultorios_habilitados_por_unidad
+    .loc[consultorios_habilitados_por_unidad["consultorios_habilitados"] == 0, ["entidad", "clues_imb"]]
+    .dropna(subset=["entidad", "clues_imb"])
+    .drop_duplicates()
+)
+
+# Si no hay consultorios habilitados, la unidad se considera atendida para faltantes.
+respondidas_estado = (
+    pd.concat(
+        [respondidas_estado[["entidad", "clues_imb"]], clues_sin_consultorios_estado],
+        ignore_index=True,
+    )
     .drop_duplicates()
 )
 
@@ -144,18 +175,41 @@ tabla_entidades = tabla_entidades.sort_values(
 # Número de preguntas del formulario
 n_preguntas = len(b)
 
-# Número de consultorios por unidad
-consultorios = (
+# Número de consultorios por unidad (prioriza consultorios_habilitados).
+consultorios_capturados = (
     base_an
-    .groupby(["clues_imb","entidad",'nombre_de_la_unidad'],as_index=False)
+    .groupby(["clues_imb", "entidad", "nombre_de_la_unidad"], as_index=False)
     ["consultorio"]
     .max()
+    .rename(columns={"consultorio": "consultorios_capturados"})
+)
+consultorios_capturados["consultorios_capturados"] = pd.to_numeric(
+    consultorios_capturados["consultorios_capturados"], errors="coerce"
 )
 
-consultorios.rename(
-    columns={"consultorio":"consultorios"},
-    inplace=True
+consultorios = (
+    base[["clues_imb", "entidad", "nombre_de_la_unidad"]]
+    .dropna(subset=["clues_imb", "entidad"])
+    .drop_duplicates()
+    .merge(
+        consultorios_habilitados_por_unidad,
+        on=["clues_imb", "entidad", "nombre_de_la_unidad"],
+        how="left"
+    )
+    .merge(
+        consultorios_capturados,
+        on=["clues_imb", "entidad", "nombre_de_la_unidad"],
+        how="left"
+    )
 )
+
+consultorios["consultorios"] = (
+    consultorios["consultorios_habilitados"]
+    .combine_first(consultorios["consultorios_capturados"])
+    .fillna(0)
+)
+
+consultorios = consultorios[["clues_imb", "entidad", "nombre_de_la_unidad", "consultorios"]]
 
 # Preguntas respondidas
 respondidas = (
@@ -167,8 +221,11 @@ respondidas = (
 
 tabla_unidades = consultorios.merge(
     respondidas,
-    on=["clues_imb","entidad", "nombre_de_la_unidad"]
+    on=["clues_imb", "entidad", "nombre_de_la_unidad"],
+    how="left"
 )
+
+tabla_unidades["respondidas"] = tabla_unidades["respondidas"].fillna(0)
 
 tabla_unidades["esperadas"] = (
     tabla_unidades["consultorios"]
@@ -180,6 +237,9 @@ tabla_unidades["porcentaje"] = (
     / tabla_unidades["esperadas"]
     *100
 ).round(1)
+
+# Regla de negocio: si no hay consultorios habilitados, el llenado es 100%.
+tabla_unidades.loc[tabla_unidades["consultorios"] == 0, "porcentaje"] = 100.0
 
 tabla_unidades = (
     tabla_unidades
