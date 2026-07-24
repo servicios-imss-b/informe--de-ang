@@ -280,7 +280,14 @@ total_por_entidad = (
 
 # Unidades que han respondido al menos una pregunta
 respondieron_por_entidad = (
-    base_an[["entidad", "clues_imb"]]
+    pd.concat(
+        [
+            base_an[["entidad", "clues_imb"]],
+            clues_sin_consultorios_estado[["entidad", "clues_imb"]],
+        ],
+        ignore_index=True,
+    )
+    .dropna(subset=["entidad", "clues_imb"])
     .drop_duplicates()
     .groupby("entidad")["clues_imb"]
     .nunique()
