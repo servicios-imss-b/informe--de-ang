@@ -232,11 +232,14 @@ tabla_unidades["esperadas"] = (
     * n_preguntas
 )
 
-tabla_unidades["porcentaje"] = (
-    tabla_unidades["respondidas"]
-    / tabla_unidades["esperadas"]
-    *100
-).round(1)
+tabla_unidades["porcentaje"] = 0.0
+mask_esperadas_positivas = tabla_unidades["esperadas"] > 0
+tabla_unidades.loc[mask_esperadas_positivas, "porcentaje"] = (
+    tabla_unidades.loc[mask_esperadas_positivas, "respondidas"]
+    / tabla_unidades.loc[mask_esperadas_positivas, "esperadas"]
+    * 100
+)
+tabla_unidades["porcentaje"] = tabla_unidades["porcentaje"].clip(lower=0, upper=100).round(1)
 
 # Regla de negocio: si no hay consultorios habilitados, el llenado es 100%.
 tabla_unidades.loc[tabla_unidades["consultorios"] == 0, "porcentaje"] = 100.0
@@ -260,11 +263,17 @@ tabla_entidades = (
     )
 )
 
-tabla_entidades["porcentaje"] = (
-    tabla_entidades["respondidas"]
-    / tabla_entidades["esperadas"]
-    *100
-).round(1)
+tabla_entidades["porcentaje"] = 0.0
+mask_esperadas_entidad = tabla_entidades["esperadas"] > 0
+tabla_entidades.loc[mask_esperadas_entidad, "porcentaje"] = (
+    tabla_entidades.loc[mask_esperadas_entidad, "respondidas"]
+    / tabla_entidades.loc[mask_esperadas_entidad, "esperadas"]
+    * 100
+)
+tabla_entidades["porcentaje"] = tabla_entidades["porcentaje"].clip(lower=0, upper=100).round(1)
+
+# Si una entidad no tiene consultorios esperados, se considera completa.
+tabla_entidades.loc[tabla_entidades["esperadas"] == 0, "porcentaje"] = 100.0
 
 tabla_entidades = tabla_entidades.sort_values(
     "porcentaje",
@@ -418,7 +427,7 @@ import json
 from datetime import datetime
 from plotly.utils import PlotlyJSONEncoder
 
-base_dir = Path.cwd()
+base_dir = Path(__file__).resolve().parent
 salida_data = base_dir / "data.js"
 html_origen = base_dir / "reporte_interactivo.html"
 index_destino = base_dir / "index.html"
