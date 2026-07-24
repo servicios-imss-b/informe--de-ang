@@ -203,13 +203,14 @@ consultorios = (
     )
 )
 
+consultorios["consultorios_habilitados_cero"] = consultorios["consultorios_habilitados"] == 0
+
 consultorios["consultorios"] = (
     consultorios["consultorios_habilitados"]
     .combine_first(consultorios["consultorios_capturados"])
-    .fillna(0)
 )
 
-consultorios = consultorios[["clues_imb", "entidad", "nombre_de_la_unidad", "consultorios"]]
+consultorios = consultorios[["clues_imb", "entidad", "nombre_de_la_unidad", "consultorios", "consultorios_habilitados_cero"]]
 
 # Preguntas respondidas
 respondidas = (
@@ -226,9 +227,10 @@ tabla_unidades = consultorios.merge(
 )
 
 tabla_unidades["respondidas"] = tabla_unidades["respondidas"].fillna(0)
+tabla_unidades["consultorios_habilitados_cero"] = tabla_unidades["consultorios_habilitados_cero"].fillna(False)
 
 tabla_unidades["esperadas"] = (
-    tabla_unidades["consultorios"]
+    tabla_unidades["consultorios"].fillna(0)
     * n_preguntas
 )
 
@@ -241,8 +243,8 @@ tabla_unidades.loc[mask_esperadas_positivas, "porcentaje"] = (
 )
 tabla_unidades["porcentaje"] = tabla_unidades["porcentaje"].clip(lower=0, upper=100).round(1)
 
-# Regla de negocio: si no hay consultorios habilitados, el llenado es 100%.
-tabla_unidades.loc[tabla_unidades["consultorios"] == 0, "porcentaje"] = 100.0
+# Regla de negocio: 100% solo cuando el 0 viene explícito en consultorios_habilitados.
+tabla_unidades.loc[tabla_unidades["consultorios_habilitados_cero"], "porcentaje"] = 100.0
 
 tabla_unidades = (
     tabla_unidades
@@ -259,7 +261,8 @@ tabla_entidades = (
         consultorios=("consultorios","sum"),
         respondidas=("respondidas","sum"),
         esperadas=("esperadas","sum"),
-        unidades=("clues","count")
+        unidades=("clues","count"),
+        unidades_cero_explicit=("consultorios_habilitados_cero", "sum")
     )
 )
 
@@ -272,8 +275,19 @@ tabla_entidades.loc[mask_esperadas_entidad, "porcentaje"] = (
 )
 tabla_entidades["porcentaje"] = tabla_entidades["porcentaje"].clip(lower=0, upper=100).round(1)
 
-# Si una entidad no tiene consultorios esperados, se considera completa.
-tabla_entidades.loc[tabla_entidades["esperadas"] == 0, "porcentaje"] = 100.0
+# Si esperadas=0, solo se marca 100 cuando TODAS las unidades son cero explícito.
+tabla_entidades.loc[
+    (tabla_entidades["esperadas"] == 0)
+    & (tabla_entidades["unidades_cero_explicit"] == tabla_entidades["unidades"]),
+    "porcentaje"
+] = 100.0
+
+# Si esperadas=0 por falta de dato, se mantiene en 0.
+tabla_entidades.loc[
+    (tabla_entidades["esperadas"] == 0)
+    & (tabla_entidades["unidades_cero_explicit"] < tabla_entidades["unidades"]),
+    "porcentaje"
+] = 0.0
 
 tabla_entidades = tabla_entidades.sort_values(
     "porcentaje",
@@ -373,8 +387,11 @@ fig.update_layout(
 
 import plotly.graph_objects as go
 
-# Ordenar de menor a mayor para efecto cascada
-df_plot = tabla_entidades.sort_values("porcentaje", ascending=True)
+# Excluir entidades en 0% para no mostrarlas en la grafica.
+df_plot = (
+    tabla_entidades[tabla_entidades["porcentaje"] > 0]
+    .sort_values("porcentaje", ascending=True)
+)
 
 # Semáforo de colores
 colores = [
