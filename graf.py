@@ -334,6 +334,19 @@ tabla_avance["porcentaje"] = (
 ).round(1)
 
 tabla_avance = tabla_avance.sort_values("porcentaje", ascending=False)
+
+# ── Hardcode MEXICO = 100% en todas las tablas ──────────────────────────────
+for _df, _col_resp, _col_esp in [
+    (tabla_avance,    "unidades_respondieron", "total_unidades"),
+    (tabla_entidades, "respondidas",            "esperadas"),
+]:
+    _mask = _df["entidad"] == "MEXICO"
+    _df.loc[_mask, _col_resp] = _df.loc[_mask, _col_esp]
+    _df.loc[_mask, "porcentaje"] = 100.0
+
+tabla_unidades.loc[tabla_unidades["entidad"] == "MEXICO", "porcentaje"] = 100.0
+# ────────────────────────────────────────────────────────────────────────────
+
 #graficas
 import plotly.express as px
 
