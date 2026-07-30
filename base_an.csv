@@ -99637,7 +99637,7 @@ fecha_registro,tipo_registro,entidad,usuario_nombre,usuario_email,clues_imb,nomb
 30/07/2026 13:52:51,respuesta,CIUDAD DE MEXICO,Alejandra Judith Puente Mendez,rr.cuerpodegobierno@gmail.com,DFIMB002172,CENTRO DE SALUD T-III ROMERO RUBIO,,,,1,otoscopio_consultorio_1,1,
 30/07/2026 13:52:55,respuesta,CIUDAD DE MEXICO,Alejandra Judith Puente Mendez,rr.cuerpodegobierno@gmail.com,DFIMB002172,CENTRO DE SALUD T-III ROMERO RUBIO,,,,1,oximetro_de_pulso_consultorio_1,0,
 30/07/2026 13:53:02,respuesta,CIUDAD DE MEXICO,Alejandra Judith Puente Mendez,rr.cuerpodegobierno@gmail.com,DFIMB002172,CENTRO DE SALUD T-III ROMERO RUBIO,,,,1,porta_cubeta_rodable_con_protector_de_hule_consultorio_1,0,
-30/07/2026 14:08:14,unidad,CIUDAD DE MEXICO,Esteban Constantino Rodríguez,uspntiielarenal@gmail.com,DFIMB000096,C.S.T-I TLATILCO,,FALSE,,,internet,,
+30/07/2026 14:25:20,unidad,CIUDAD DE MEXICO,Esteban Constantino Rodríguez,uspntiielarenal@gmail.com,DFIMB000096,C.S.T-I TLATILCO,,FALSE,,,internet,,
 30/07/2026 13:53:15,respuesta,CIUDAD DE MEXICO,Alejandra Judith Puente Mendez,rr.cuerpodegobierno@gmail.com,DFIMB002172,CENTRO DE SALUD T-III ROMERO RUBIO,,,,1,silla_para_el_paciente_consultorio_1,1,
 30/07/2026 13:53:20,respuesta,CIUDAD DE MEXICO,Alejandra Judith Puente Mendez,rr.cuerpodegobierno@gmail.com,DFIMB002172,CENTRO DE SALUD T-III ROMERO RUBIO,,,,1,silla_para_el_acompanante_consultorio_1,2,
 30/07/2026 13:53:28,respuesta,CIUDAD DE MEXICO,Alejandra Judith Puente Mendez,rr.cuerpodegobierno@gmail.com,DFIMB002172,CENTRO DE SALUD T-III ROMERO RUBIO,,,,1,sillon_giratorio_de_respaldo_bajo_consultorio_1,0,
@@ -99915,3 +99915,4 @@ fecha_registro,tipo_registro,entidad,usuario_nombre,usuario_email,clues_imb,nomb
 30/07/2026 14:22:41,respuesta,CIUDAD DE MEXICO,LAURA GALLARDO SANTIBAÑEZ,gallardolau70@gmail.com,DFIMB000982,C.S.T-III DR. RAFAEL CARRILLO,,,,1,turno_consultorio_1,Matutino,
 30/07/2026 14:23:40,respuesta,MEXICO,José Martín Valdez López,martinlopez@ciencias.unam.mx,MCIMB003912,ESTADO DE MÉXICO,,,,1,estetoscopio_pinard_o_doppler_fetal_portatil_consultorio_1,1,
 30/07/2026 14:23:51,respuesta,MEXICO,José Martín Valdez López,martinlopez@ciencias.unam.mx,MCIMB003912,ESTADO DE MÉXICO,,,,1,porta_cubeta_rodable_con_protector_de_hule_consultorio_1,1,
+30/07/2026 14:24:50,unidad,CIUDAD DE MEXICO,ALEYDIS RAMOS OLIVARES,ramosoaipn@gmail.com,DFIMB003176,CENTRO DE SALUD T-II SOLIDARIDAD TETELCO,,TRUE,,,internet,,
